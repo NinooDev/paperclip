@@ -21,16 +21,19 @@ fi
 if [ -f "$CONFIG_FILE" ]; then
   # Use node to patch the config to allow public exposure
   node -e "
-    const fs = require('fs');
-    try {
-      const cfg = JSON.parse(fs.readFileSync('$CONFIG_FILE', 'utf8'));
-      cfg.deployment = cfg.deployment || {};
-      cfg.deployment.exposure = 'public';
-      cfg.deployment.mode = process.env.PAPERCLIP_DEPLOYMENT_MODE || 'authenticated';
-      fs.writeFileSync('$CONFIG_FILE', JSON.stringify(cfg, null, 2));
-      console.log('Config patched: exposure=public');
-    } catch(e) { console.log('Config patch skipped:', e.message); }
-  "
+  const fs = require('fs');
+  try {
+    const cfg = JSON.parse(fs.readFileSync('$CONFIG_FILE', 'utf8'));
+    cfg.deployment = cfg.deployment || {};
+    cfg.deployment.exposure = 'public';
+    cfg.deployment.mode = process.env.PAPERCLIP_DEPLOYMENT_MODE || 'authenticated';
+    cfg.auth = cfg.auth || {};
+    cfg.auth.baseUrlMode = 'explicit';
+    cfg.auth.baseUrl = process.env.PAPERCLIP_BASE_URL || 'http://localhost:3100';
+    fs.writeFileSync('$CONFIG_FILE', JSON.stringify(cfg, null, 2));
+    console.log('Config patched: exposure=public, baseUrlMode=explicit');
+  } catch(e) { console.log('Config patch skipped:', e.message); }
+"
 fi
 
 echo "Starting Paperclip server..."
